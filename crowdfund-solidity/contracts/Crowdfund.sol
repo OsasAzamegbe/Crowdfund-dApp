@@ -31,6 +31,11 @@ contract Crowdfund {
     Campaigns[] public campaigns;
 
 
+    modifier validCampaign(uint campaignId) {
+        require(campaignId <= numCampaigns);
+        _;
+    }
+
     constructor() {
         numCampaigns = 0;
     }
@@ -52,9 +57,7 @@ contract Crowdfund {
         return campaigns;
     }
 
-    function contributeToCampaign(uint campaignId) public payable {
-        require(campaignId <= numCampaigns);
-
+    function contributeToCampaign(uint campaignId) validCampaign(campaignId) public payable {
         Campaign storage campaign = campaigns[campaignId];
         FundMember storage fundMember = campaign.contributors[msg.sender];
         bool isNewApprover = !fundMember.isApprover;
@@ -66,9 +69,8 @@ contract Crowdfund {
         campaign.numApprovers += isNewApprover && fundMember.isApprover ? 1 : 0;
     }
 
-    function createCampaignRequest(uint campaignId, address payable recipient, string memory description) public returns(uint) {
+    function createCampaignRequest(uint campaignId, address payable recipient, string memory description) validCampaign(campaignId) public returns(uint) {
         Campaign storage campaign = campaigns[campaignId];
-
         require(campaign.manager == msg.sender);
 
         campaign.requests.push(CampaignRequest({
