@@ -15,7 +15,7 @@ const deploy = async () => {
 
     console.log('Deploying contract with ABI:', JSON.stringify(abi));
     console.log('Using account:', accounts[0]);
-    const deployedContract = await web3.eth
+    const deployedContract = await new web3.eth
         .Contract(abi)
         .deploy({ data: evm.bytecode.object })
         .send({ from: accounts[0], gas: '1000000' });
