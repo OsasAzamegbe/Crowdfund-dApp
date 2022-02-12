@@ -28,7 +28,7 @@ contract Crowdfund {
     }
 
     uint numCampaigns;
-    Campaigns[] public campaigns;
+    mapping(uint => Campaign) public campaigns;
 
 
     modifier validCampaign(uint campaignId) {
@@ -41,20 +41,16 @@ contract Crowdfund {
     }
     
     function createCampaign(uint minContribution, uint target) public returns (uint) {
-        campaigns.push(Campaign({
-            manager: msg.sender, 
-            minContributionForApprover: minContribution,
-            balance: 0,
-            target: target,
-            numApprovers: 0,
-            numRequests: 0
-        }));
+        Campaign storage c = campaigns[numCampaigns];
+
+        c.manager = msg.sender; 
+        c.minContributionForApprover = minContribution;
+        c.balance = 0;
+        c.target = target;
+        c.numApprovers = 0;
+        c.numRequests = 0;
         
         return numCampaigns++;
-    }
-
-    function getCampaigns() public view returns(Campaigns[]) {
-        return campaigns;
     }
 
     function contributeToCampaign(uint campaignId) validCampaign(campaignId) public payable {
@@ -63,8 +59,8 @@ contract Crowdfund {
         bool isNewApprover = !fundMember.isApprover;
 
         fundMember.isContributor = true;
-        fundMember.balance += msg.value;
-        fundMember.isApprover = fundMember.balance >= campaign.minContributionForApprover;
+        fundMember.contribution += msg.value;
+        fundMember.isApprover = fundMember.contribution >= campaign.minContributionForApprover;
         campaign.balance += msg.value;
         campaign.numApprovers += isNewApprover && fundMember.isApprover ? 1 : 0;
     }
@@ -75,7 +71,7 @@ contract Crowdfund {
 
         campaign.requests.push(CampaignRequest({
             recipient: recipient,
-            description: description'
+            description: description,
             numApprovals: 0,
             isApproved: false,
             isCompleted: false
