@@ -30,6 +30,7 @@ contract Crowdfund {
     uint numCampaigns;
     mapping(uint => Campaign) public campaigns;
     event CampaignIdEvent(uint campaignId);
+    event CampaignRequestIdEvent(uint requestId);
 
 
     modifier validCampaign(uint campaignId) {
@@ -67,7 +68,7 @@ contract Crowdfund {
         campaign.numApprovers += isNewApprover && fundMember.isApprover ? 1 : 0;
     }
 
-    function createCampaignRequest(uint campaignId, address payable recipient, string memory description) validCampaign(campaignId) public returns(uint) {
+    function createCampaignRequest(uint campaignId, address payable recipient, string memory description) validCampaign(campaignId) public {
         Campaign storage campaign = campaigns[campaignId];
         require(campaign.manager == msg.sender);
 
@@ -79,7 +80,8 @@ contract Crowdfund {
             isCompleted: false
         }));
 
-        return campaign.numRequests++;
+        emit CampaignRequestIdEvent(campaign.numRequests);
+        campaign.numRequests++;
     }
 
     function getCampaignContributor(uint campaignId) validCampaign(campaignId) public view returns(FundMember memory) {
