@@ -2,8 +2,7 @@
 pragma solidity ^0.8.11;
 
 contract Crowdfund {
-    struct FundMember {
-        bool isContributor;
+    struct Contributor {
         bool isApprover;
         uint contribution;
     }
@@ -25,7 +24,7 @@ contract Crowdfund {
         uint numRequests;
         uint numApprovers;
         CampaignRequest[] requests;
-        mapping(address => FundMember) contributors;
+        mapping(address => Contributor) contributors;
     }
 
     uint numCampaigns;
@@ -65,14 +64,13 @@ contract Crowdfund {
 
     function contributeToCampaign(uint campaignId) validCampaign(campaignId) public payable {
         Campaign storage campaign = campaigns[campaignId];
-        FundMember storage fundMember = campaign.contributors[msg.sender];
-        bool isNewApprover = !fundMember.isApprover;
+        Contributor storage contributor = campaign.contributors[msg.sender];
+        bool isNewApprover = !contributor.isApprover;
 
-        fundMember.isContributor = true;
-        fundMember.contribution += msg.value;
-        fundMember.isApprover = fundMember.contribution >= campaign.minContributionForApprover;
+        contributor.contribution += msg.value;
+        contributor.isApprover = contributor.contribution >= campaign.minContributionForApprover;
         campaign.balance += msg.value;
-        campaign.numApprovers += isNewApprover && fundMember.isApprover ? 1 : 0;
+        campaign.numApprovers += isNewApprover && contributor.isApprover ? 1 : 0;
     }
 
     function createCampaignRequest(uint campaignId, address payable recipient, string memory description, uint amount) validCampaign(campaignId) public {
@@ -95,7 +93,7 @@ contract Crowdfund {
 
     function approveCampaignRequest(uint campaignId, uint requestId) validRequest(campaignId, requestId) public {
         Campaign storage campaign = campaigns[campaignId];
-        FundMember storage member = campaign.contributors[msg.sender];
+        Contributor storage member = campaign.contributors[msg.sender];
         require(member.isApprover);
 
         CampaignRequest storage campaignRequest = campaign.requests[requestId];
@@ -114,7 +112,7 @@ contract Crowdfund {
         campaignRequest.isCompleted = true;
     }
 
-    function getCampaignContributor(uint campaignId) validCampaign(campaignId) public view returns(FundMember memory) {
+    function getCampaignContributor(uint campaignId) validCampaign(campaignId) public view returns(Contributor memory) {
         return campaigns[campaignId].contributors[msg.sender];
     }
 
