@@ -11,6 +11,7 @@ contract Crowdfund {
     struct CampaignRequest {
         address payable recipient;
         string description;
+        uint amount;
         uint numApprovals;
         bool isApproved;
         bool isCompleted;
@@ -74,13 +75,15 @@ contract Crowdfund {
         campaign.numApprovers += isNewApprover && fundMember.isApprover ? 1 : 0;
     }
 
-    function createCampaignRequest(uint campaignId, address payable recipient, string memory description) validCampaign(campaignId) public {
+    function createCampaignRequest(uint campaignId, address payable recipient, string memory description, uint amount) validCampaign(campaignId) public {
         Campaign storage campaign = campaigns[campaignId];
         require(campaign.manager == msg.sender);
+        require(campaign.balance >= amount);
 
         campaign.requests.push(CampaignRequest({
             recipient: recipient,
             description: description,
+            amount: 0,
             numApprovals: 0,
             isApproved: false,
             isCompleted: false
@@ -90,12 +93,37 @@ contract Crowdfund {
         campaign.numRequests++;
     }
 
+    function approveCampaignRequest(uint campaignId, uint requestId) validRequest(campaignId, requestId) public {
+        Campaign storage campaign = campaigns[campaignId];
+        FundMember storage member = campaign.contributors[msg.sender];
+        require(member.isApprover);
+
+        CampaignRequest storage campaignRequest = campaign.requests[requestId];
+        campaignRequest.numApprovals++;
+        campaignRequest.isApproved = campaignRequest.numApprovals > campaign.numApprovers/2;
+    }
+
+    function completeCampaignRequest(uint campaignId, uint requestId) validRequest(campaignId, requestId) public {
+        Campaign storage campaign = campaigns[campaignId];
+        CampaignRequest storage campaignRequest = campaign.requests[requestId];
+        require(campaignRequest.isApproved);
+        require(campaign.balance >= campaignRequest.amount);
+
+        campaignRequest.recipient.transfer(campaignRequest.amount);
+        campaign.balance -= campaignRequest.amount;
+        campaignRequest.isCompleted = true;
+    }
+
     function getCampaignContributor(uint campaignId) validCampaign(campaignId) public view returns(FundMember memory) {
         return campaigns[campaignId].contributors[msg.sender];
     }
 
     function getCampaignBalance(uint campaignId) validCampaign(campaignId) public view returns(uint) {
         return campaigns[campaignId].balance;
+    }
+
+    function getCampaignRequest(uint campaignId, uint requestId) validRequest(campaignId, requestId) public view returns(CampaignRequest memory) {
+        return campaigns[campaignId].requests[requestId];
     }
 
 }
