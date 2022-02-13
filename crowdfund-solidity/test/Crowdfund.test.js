@@ -8,11 +8,12 @@ const { beforeEach } = require('mocha');
 
 let crowdfundContract, accounts, campaignId;
 const web3 = new Web3(ganache.provider());
+const BASE_GAS = '1000000';
 
 const createCampaign = async (crowdfundContract, account) => {
     const txnObj = await crowdfundContract.methods
         .createCampaign(web3.utils.toWei('0.00001', 'ether'), web3.utils.toWei('10', 'ether'))
-        .send({ from: account, gas: '1000000' });
+        .send({ from: account, gas: BASE_GAS });
     campaignId = txnObj.events.CampaignIdEvent.returnValues.campaignId;
 }
 
@@ -20,7 +21,7 @@ beforeEach(async () => {
     accounts = await web3.eth.getAccounts();
     crowdfundContract = await new web3.eth.Contract(abi)
         .deploy({ data: evm.bytecode.object })
-        .send({ from: accounts[0], gas: '1000000' });
+        .send({ from: accounts[0], gas: BASE_GAS });
     createCampaign(crowdfundContract, accounts[0]);
 });
 
@@ -41,7 +42,7 @@ describe('Crowdfund Test', () => {
 
         //when
         await crowdfundContract.methods.contributeToCampaign(campaignId)
-            .send({ from: accounts[0], gas: '1000000', value: contribution});
+            .send({ from: accounts[0], gas: BASE_GAS, value: contribution });
 
         //then
         const newBalance = await crowdfundContract.methods.getCampaignBalance(campaignId).call();
@@ -55,7 +56,7 @@ describe('Crowdfund Test', () => {
 
         //when
         await crowdfundContract.methods.contributeToCampaign(campaignId)
-            .send({ from: accounts[0], gas: '1000000', value: contribution});
+            .send({ from: accounts[0], BASE_GAS, value: contribution });
 
         //then
         const balanceChange = oldBalance - await web3.eth.getBalance(accounts[0]);
