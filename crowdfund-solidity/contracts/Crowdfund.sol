@@ -29,6 +29,7 @@ contract Crowdfund {
 
     uint numCampaigns;
     mapping(uint => Campaign) public campaigns;
+    event CampaignIdEvent(uint campaignId);
 
 
     modifier validCampaign(uint campaignId) {
@@ -40,7 +41,7 @@ contract Crowdfund {
         numCampaigns = 0;
     }
     
-    function createCampaign(uint minContribution, uint target) public returns (uint) {
+    function createCampaign(uint minContribution, uint target) public {
         Campaign storage c = campaigns[numCampaigns];
 
         c.manager = msg.sender; 
@@ -49,8 +50,9 @@ contract Crowdfund {
         c.target = target;
         c.numApprovers = 0;
         c.numRequests = 0;
-        
-        return numCampaigns++;
+
+        emit CampaignIdEvent(numCampaigns);
+        numCampaigns++;
     }
 
     function contributeToCampaign(uint campaignId) validCampaign(campaignId) public payable {
@@ -78,6 +80,14 @@ contract Crowdfund {
         }));
 
         return campaign.numRequests++;
+    }
+
+    function getCampaignContributor(uint campaignId) validCampaign(campaignId) public view returns(FundMember memory) {
+        return campaigns[campaignId].contributors[msg.sender];
+    }
+
+    function getCampaignBalance(uint campaignId) validCampaign(campaignId) public view returns(uint) {
+        return campaigns[campaignId].balance;
     }
 
 }
