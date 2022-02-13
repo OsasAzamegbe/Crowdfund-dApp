@@ -38,6 +38,12 @@ contract Crowdfund {
         _;
     }
 
+    modifier validRequest(uint campaignId, uint requestId) {
+        require(campaignId <= numCampaigns);
+        require(requestId <= campaigns[campaignId].numRequests);
+        _;
+    }
+
     constructor() {
         numCampaigns = 0;
     }
