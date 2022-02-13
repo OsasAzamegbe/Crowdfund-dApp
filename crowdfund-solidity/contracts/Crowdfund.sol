@@ -64,7 +64,9 @@ contract Campaign {
 
         contributor.contribution += msg.value;
         contributor.isApprover = contributor.contribution >= minContributionForApprover;
-        numApprovers += isNewApprover && contributor.isApprover ? 1 : 0;
+        if(isNewApprover && contributor.isApprover) {
+            numApprovers++;
+        }
     }
 
     function createCampaignRequest(address payable recipient, string memory description, uint amount) admin public {
@@ -107,5 +109,4 @@ contract Campaign {
     function getCampaignRequests() public view returns(CampaignRequest[] memory) {
         return requests;
     }
-
 }

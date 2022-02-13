@@ -20,6 +20,6 @@ const compilerInput = {
     }
 };
 
-const compiledCode = JSON.parse(solc.compile(JSON.stringify(compilerInput)));
+const contracts = JSON.parse(solc.compile(JSON.stringify(compilerInput))).contracts['Crowdfund.sol'];
 
-module.exports = compiledCode.contracts['Crowdfund.sol'].Crowdfund;
+module.exports = contracts;
