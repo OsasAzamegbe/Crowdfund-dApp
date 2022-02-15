@@ -6,24 +6,22 @@ const Web3 = require('web3');
 const { beforeEach } = require('mocha');
 
 
-let accounts, campaign;
+let accounts, campaign, manager;
 const BASE_GAS = '10000000';
 const web3 = new Web3(ganache.provider({ gasLimit: BASE_GAS }));
 
-const createCampaign = async (account) => {
-    await crowdfundContract.methods
-        .createCampaign(web3.utils.toWei('0.00001', 'ether'), web3.utils.toWei('10', 'ether'))
-        .send({ from: account, gas: BASE_GAS });
-    const campaignAddress = await crowdfundContract.methods.campaigns(0).call();
-    campaign = await new web3.eth.Contract(Campaign.abi, campaignAddress);
-}
-
 beforeEach(async () => {
     accounts = await web3.eth.getAccounts();
+    manager = accounts[0];
     crowdfundContract = await new web3.eth.Contract(Crowdfund.abi)
         .deploy({ data: Crowdfund.evm.bytecode.object })
-        .send({ from: accounts[0], gas: BASE_GAS });
-    await createCampaign(accounts[0]);
+        .send({ from: manager, gas: BASE_GAS });
+
+    await crowdfundContract.methods
+        .createCampaign(web3.utils.toWei('0.00001', 'ether'), web3.utils.toWei('10', 'ether'))
+        .send({ from: manager, gas: BASE_GAS });
+    const campaignAddress = await crowdfundContract.methods.campaigns(0).call();
+    campaign = await new web3.eth.Contract(Campaign.abi, campaignAddress);
 });
 
 describe('Crowdfund Test', () => {
@@ -38,7 +36,7 @@ describe('Crowdfund Test', () => {
     it('Multiple Campaigns can be created', async () => {
         await crowdfundContract.methods
             .createCampaign(web3.utils.toWei('0.00001', 'ether'), web3.utils.toWei('10', 'ether'))
-            .send({ from: accounts[0], gas: BASE_GAS });
+            .send({ from: manager, gas: BASE_GAS });
         await crowdfundContract.methods
             .createCampaign(web3.utils.toWei('0.00001', 'ether'), web3.utils.toWei('10', 'ether'))
             .send({ from: accounts[1], gas: BASE_GAS });
@@ -59,7 +57,7 @@ describe('Crowdfund Test', () => {
 
         //when
         await campaign.methods.contributeToCampaign()
-            .send({ from: accounts[0], value: contribution });
+            .send({ from: manager, value: contribution });
 
         //then
         const campaignBalance = await web3.eth.getBalance(campaign.options.address);
@@ -70,29 +68,49 @@ describe('Crowdfund Test', () => {
     it('Campaign contribution left account balance', async () => {
         //given
         const contribution = web3.utils.toWei('0.1', 'ether');
-        const oldBalance = await web3.eth.getBalance(accounts[0]);
+        const oldBalance = await web3.eth.getBalance(manager);
 
         //when
         await campaign.methods.contributeToCampaign()
-            .send({ from: accounts[0], value: contribution });
+            .send({ from: manager, value: contribution });
 
         //then
-        const balanceChange = oldBalance - await web3.eth.getBalance(accounts[0]);
+        const balanceChange = oldBalance - await web3.eth.getBalance(manager);
         assert(balanceChange > contribution);
+    });
+
+    it('Campaign request created successfully', async () => {
+        //given
+        await campaign.methods.contributeToCampaign()
+            .send({ from: manager, value: web3.utils.toWei('1', 'ether') });
+        const description = "pay vendor for test";
+        const vendor = accounts[1];
+        const amount = web3.utils.toWei('0.1', 'ether');
+
+        //when
+        await campaign.methods.createCampaignRequest(vendor, description, amount)
+            .send({ from: manager, gas: BASE_GAS });
+
+        //then
+        const campaignRequests = await campaign.methods.getCampaignRequests().call();
+        assert.equal(1, campaignRequests.length);
+        assert.equal(description, campaignRequests[0].description);
+        assert.equal(vendor, campaignRequests[0].recipient);
+        assert.equal(amount, campaignRequests[0].amount);
     });
 
     it('Multiple Campaign requests created successfully', async () => {
         //given
         await campaign.methods.contributeToCampaign()
-            .send({ from: accounts[0], value: web3.utils.toWei('1', 'ether') });
+            .send({ from: manager, value: web3.utils.toWei('1', 'ether') });
 
         //when
         await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test 1", web3.utils.toWei('0.1', 'ether'))
-            .send({ from: accounts[0], gas: BASE_GAS });
+            .send({ from: manager, gas: BASE_GAS });
         await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test 2", web3.utils.toWei('0.1', 'ether'))
-            .send({ from: accounts[0], gas: BASE_GAS });
+            .send({ from: manager, gas: BASE_GAS });
         await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test 3", web3.utils.toWei('0.1', 'ether'))
-            .send({ from: accounts[0], gas: BASE_GAS });
+            .send({ from: manager, gas: BASE_GAS });
 
         //then
         const campaignRequests = await campaign.methods.getCampaignRequests().call();
