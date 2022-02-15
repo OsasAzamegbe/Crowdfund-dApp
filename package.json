@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "cd crowdfund-solidity && mocha",
-    "compile": "rm -rf crowdfund-solidity/build && mkdir crowdfund-solidity/build && node crowdfund-solidity/compile.js"
+    "compile": "rm -rf crowdfund-solidity/build && mkdir crowdfund-solidity/build && node crowdfund-solidity/compile.js",
+    "deploy": "npm run compile && node crowdfund-solidity/deploy.js"
   },
   "keywords": [
     "solidity",

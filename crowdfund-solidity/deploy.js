@@ -1,7 +1,7 @@
 require('dotenv').config();
 const HdWalletProvider = require('@truffle/hdwallet-provider');
 const Web3 = require('web3');
-const { Crowdfund } = require('./compile');
+const { Crowdfund } = require('./build/Crowdfund.json');
 
 const deploy = async () => {
     const accountProvider = new HdWalletProvider(
@@ -18,7 +18,7 @@ const deploy = async () => {
     const deployedContract = await new web3.eth
         .Contract(Crowdfund.abi)
         .deploy({ data: Crowdfund.evm.bytecode.object })
-        .send({ from: accounts[0], gas: '1000000' });
+        .send({ from: accounts[0], gas: '10000000' });
 
     console.log('Deployed contract to address:', deployedContract.options.address);
     accountProvider.engine.stop();
