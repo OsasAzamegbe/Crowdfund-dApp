@@ -69,19 +69,20 @@ contract Campaign {
         }
     }
 
-    function createCampaignRequest(address payable recipient, string memory description, uint amount) admin public {
-        require(address(this).balance >= amount);
+    function createCampaignRequest(address payable recipient, string calldata description, uint amount) admin public {
+        require(address(this).balance > amount);
 
         requests.push(CampaignRequest({
             recipient: recipient,
             description: description,
-            amount: 0,
+            amount: amount,
             numApprovals: 0,
             isApproved: false,
             isCompleted: false
         }));
 
         emit RequestIdEvent(numRequests);
+
         numRequests++;
     }
 
@@ -97,6 +98,7 @@ contract Campaign {
     function completeCampaignRequest(uint requestId) validRequest(requestId) admin public {
         CampaignRequest storage campaignRequest = requests[requestId];
         require(campaignRequest.isApproved);
+        require(address(this).balance >= campaignRequest.amount);
 
         campaignRequest.recipient.transfer(campaignRequest.amount);
         campaignRequest.isCompleted = true;
