@@ -4,10 +4,14 @@ pragma solidity ^0.8.11;
 
 contract Crowdfund {
     address[] public campaigns;
+    uint public numCampaigns;
+    event CampaignIdEvent(uint campaignId);
 
     function createCampaign(uint minContribution, uint targetAmount) public {
         Campaign campaign = new Campaign(msg.sender, minContribution, targetAmount);
         campaigns.push(address(campaign));
+        emit CampaignIdEvent(numCampaigns);
+        numCampaigns++;
     }
 
     function getCampaigns() public view returns(address[] memory) {

@@ -17,10 +17,11 @@ beforeEach(async () => {
         .deploy({ data: Crowdfund.evm.bytecode.object })
         .send({ from: manager, gas: BASE_GAS });
 
-    await crowdfundContract.methods
+    const obj = await crowdfundContract.methods
         .createCampaign(web3.utils.toWei('0.00001', 'ether'), web3.utils.toWei('10', 'ether'))
         .send({ from: manager, gas: BASE_GAS });
-    const campaignAddress = await crowdfundContract.methods.campaigns(0).call();
+    const campaignId = obj.events.CampaignIdEvent.returnValues.campaignId;
+    const campaignAddress = await crowdfundContract.methods.campaigns(campaignId).call();
     campaign = await new web3.eth.Contract(Campaign.abi, campaignAddress);
 });
 
