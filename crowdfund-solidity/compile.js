@@ -20,6 +20,8 @@ const compilerInput = {
     }
 };
 
-const contracts = JSON.parse(solc.compile(JSON.stringify(compilerInput))).contracts['Crowdfund.sol'];
-
-module.exports = contracts;
+const contracts = JSON.parse(solc.compile(JSON.stringify(compilerInput))).contracts["Crowdfund.sol"];
+const outputFilePath = path.resolve(__dirname, 'build', 'Crowdfund.json');
+fs.writeFileSync(outputFilePath, JSON.stringify(contracts), (err) => {
+    if (err) throw err;
+});
