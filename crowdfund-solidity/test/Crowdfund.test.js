@@ -35,6 +35,11 @@ describe('Crowdfund Test', () => {
         assert.ok(campaign.options.address);
     });
 
+    it('Cmapaign manager is correct', async() => {
+        const campaignManager = await campaign.methods.manager().call();
+        assert.equal(manager, campaignManager);
+    });
+
     it('Multiple Campaigns can be created', async () => {
         await crowdfundContract.methods
             .createCampaign(MIN_CONTRIBUTION_FOR_APPROVER, web3.utils.toWei('10', 'ether'))
@@ -144,7 +149,7 @@ describe('Crowdfund Test', () => {
     it('Non-manager cannot create campaign request', async () => {
         //given
         await campaign.methods.contributeToCampaign()
-            .send({ from: manager, value: web3.utils.toWei('1', 'ether') });
+            .send({ from: accounts[2], value: web3.utils.toWei('1', 'ether') });
         const description = "pay vendor for test";
         const vendor = accounts[1];
         const amount = web3.utils.toWei('0.1', 'ether');
@@ -168,7 +173,7 @@ describe('Crowdfund Test', () => {
     it('Cannot create campaign request with amount greater than campaign balance', async () => {
         //given
         await campaign.methods.contributeToCampaign()
-            .send({ from: manager, value: web3.utils.toWei('1', 'ether') });
+            .send({ from: accounts[2], value: web3.utils.toWei('1', 'ether') });
         const description = "pay vendor for test";
         const vendor = accounts[1];
         const amount = web3.utils.toWei('10', 'ether');
@@ -187,6 +192,99 @@ describe('Crowdfund Test', () => {
         const campaignRequests = await campaign.methods.getCampaignRequests().call();
         assert.equal(0, campaignRequests.length);
         assert(failed);
-    });    
+    });
+
+    it('Can approve campaign request', async () => {
+        //given
+        await campaign.methods.contributeToCampaign()
+            .send({ from: accounts[2], value: web3.utils.toWei('1', 'ether') });
+
+        //when
+        const responseObj = await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test", web3.utils.toWei('0.1', 'ether'))
+            .send({ from: manager, gas: BASE_GAS });
+        const requestId = responseObj.events.RequestIdEvent.returnValues.requestId;
+        await campaign.methods.approveCampaignRequest(requestId).send({ from: accounts[2], gas: BASE_GAS });
+
+        //then
+        const campaignRequest = await campaign.methods.requests(requestId).call();
+        assert.equal(1, campaignRequest.numApprovals);
+        assert(campaignRequest.isApproved);
+        assert(!campaignRequest.isCompleted);
+    });
+
+    it('Manager can complete approved campaign request', async () => {
+        //given
+        await campaign.methods.contributeToCampaign()
+            .send({ from: accounts[2], value: web3.utils.toWei('1', 'ether') });
+
+        //when
+        const responseObj = await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test", web3.utils.toWei('0.1', 'ether'))
+            .send({ from: manager, gas: BASE_GAS });
+        const requestId = responseObj.events.RequestIdEvent.returnValues.requestId;
+        await campaign.methods.approveCampaignRequest(requestId).send({ from: accounts[2], gas: BASE_GAS });
+        await campaign.methods.completeCampaignRequest(requestId).send({ from: manager, gas: BASE_GAS });
+
+        //then
+        const campaignRequest = await campaign.methods.requests(requestId).call();
+        assert.equal(1, campaignRequest.numApprovals);
+        assert(campaignRequest.isApproved);
+        assert(campaignRequest.isCompleted);
+    });
+
+    it('Non-manager cannot complete approved campaign request', async () => {
+        //given
+        await campaign.methods.contributeToCampaign()
+            .send({ from: accounts[2], value: web3.utils.toWei('1', 'ether') });
+        let failed = false;
+
+        //when
+        const responseObj = await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test", web3.utils.toWei('0.1', 'ether'))
+            .send({ from: manager, gas: BASE_GAS });
+        const requestId = responseObj.events.RequestIdEvent.returnValues.requestId;
+        await campaign.methods.approveCampaignRequest(requestId).send({ from: accounts[2], gas: BASE_GAS });
+        try {
+            await campaign.methods.completeCampaignRequest(requestId).send({ from: accounts[2], gas: BASE_GAS });
+        } catch(error) {
+            assert.ok(error);
+            failed = true;
+        }
+
+        //then
+        const campaignRequest = await campaign.methods.requests(requestId).call();
+        assert.equal(1, campaignRequest.numApprovals);
+        assert(campaignRequest.isApproved);
+        assert(!campaignRequest.isCompleted);
+        assert(failed);
+    });
+
+    it('Manager cannot complete non-approved campaign request', async () => {
+        //given
+        await campaign.methods.contributeToCampaign()
+            .send({ from: accounts[1], value: web3.utils.toWei('0.2', 'ether') });
+        await campaign.methods.contributeToCampaign()
+            .send({ from: accounts[2], value: web3.utils.toWei('0.3', 'ether') });
+        let failed = false;
+
+        //when
+        const responseObj = await campaign.methods.createCampaignRequest(accounts[1], "pay vendor for test", web3.utils.toWei('0.1', 'ether'))
+            .send({ from: manager, gas: BASE_GAS });
+        const requestId = responseObj.events.RequestIdEvent.returnValues.requestId;
+        await campaign.methods.approveCampaignRequest(requestId).send({ from: accounts[2], gas: BASE_GAS });
+        try {
+            await campaign.methods.completeCampaignRequest(requestId).send({ from: manager, gas: BASE_GAS });
+        } catch(error) {
+            assert.ok(error);
+            failed = true;
+        }
+
+        //then
+        const campaignRequest = await campaign.methods.requests(requestId).call();
+        const numApprovers = await campaign.methods.numApprovers().call();
+        assert.equal(1, campaignRequest.numApprovals);
+        assert.equal(2, numApprovers);
+        assert(!campaignRequest.isApproved);
+        assert(!campaignRequest.isCompleted);
+        assert(failed);
+    });
 });
 
