@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const HdWalletProvider = require('@truffle/hdwallet-provider');
 const Web3 = require('web3');
 const { Crowdfund } = require('./build/Crowdfund.json');
@@ -20,7 +22,13 @@ const deploy = async () => {
         .deploy({ data: Crowdfund.evm.bytecode.object })
         .send({ from: accounts[0], gas: '10000000' });
 
-    console.log('Deployed contract to address:', deployedContract.options.address);
+    const envPath = path.resolve(__dirname, '..', '.env');
+    fs.appendFile(envPath, "\nCROWDFUND_CONTRACT_ADDRESS=" + deployedContract.options.address, (error) => {
+        if (error) {
+            throw error;
+        }
+        console.log('Deployed contract to address:', deployedContract.options.address);
+    });
     accountProvider.engine.stop();
 }
 
