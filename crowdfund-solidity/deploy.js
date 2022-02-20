@@ -7,8 +7,8 @@ const { Crowdfund } = require('./build/Crowdfund.json');
 
 const deploy = async () => {
     const accountProvider = new HdWalletProvider(
-        process.env.ACCOUNT_MNEMONIC,
-        process.env.INFURA_RINKEBY_ENDPOINT
+        process.env.NEXT_PUBLIC_ACCOUNT_MNEMONIC,
+        process.env.NEXT_PUBLIC_INFURA_RINKEBY_ENDPOINT
     );
     const web3 = new Web3(accountProvider);
 
@@ -23,7 +23,7 @@ const deploy = async () => {
         .send({ from: accounts[0], gas: '10000000' });
 
     const envPath = path.resolve(__dirname, '..', '.env');
-    fs.appendFile(envPath, "\nCROWDFUND_CONTRACT_ADDRESS=" + deployedContract.options.address, (error) => {
+    fs.appendFile(envPath, "\nNEXT_PUBLIC_CROWDFUND_CONTRACT_ADDRESS=" + deployedContract.options.address, (error) => {
         if (error) {
             throw error;
         }

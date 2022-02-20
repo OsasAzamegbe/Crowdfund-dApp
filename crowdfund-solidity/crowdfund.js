@@ -1,9 +1,19 @@
 import web3 from "./web3";
-import { Crowdfund } from "./build/Crowdfund.json";
-import dotenv from 'dotenv';
-dotenv.config();
+import compiled from "./build/Crowdfund.json";
 
 
-const crowdfund = new web3.eth.Contract(Crowdfund.abi, process.env.CROWDFUND_CONTRACT_ADDRESS);
+class CrowdfundWrapper {
+    m_crowdfund;
+    m_address;
+    
+    constructor() {
+        this.m_address = process.env.NEXT_PUBLIC_CROWDFUND_CONTRACT_ADDRESS;
+        this.m_crowdfund = new web3.eth.Contract(compiled.Crowdfund.abi, this.m_address);
+    }
 
-export default crowdfund;
+    async getCampaigns() {
+        return await this.m_crowdfund.methods.getCampaigns().call();
+    }
+}
+
+export default CrowdfundWrapper;
