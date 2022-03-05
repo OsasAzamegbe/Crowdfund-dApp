@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Layout from "../../components/Layout";
 import { Button, Form, Input, Message, Modal } from "semantic-ui-react";
 import CrowdfundWrapper from "../../crowdfund-solidity/crowdfund";
+import { useRouter } from "next/router";
 
 
 const Create = () => {
@@ -10,6 +11,11 @@ const Create = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const [campaignId, setCampaignId] = useState(0);
+
+    const router = useRouter();
+
+    const crowdfund = new CrowdfundWrapper();
 
     const displayError = (error) => {
         setErrorMessage(error);
@@ -41,8 +47,8 @@ const Create = () => {
         setLoading(true);
         setErrorMessage("");
         try {
-            const crowdfund = new CrowdfundWrapper();
-            await crowdfund.createCampaign(minimumContribution, target);
+            const txnObj = await crowdfund.createCampaign(minimumContribution, target);
+            setCampaignId(txnObj.events.CampaignIdEvent.returnValues.campaignId);
             setTarget("");
             setMinimumContribution("");
             setSuccessMessage('Campaign was created successfully!');
@@ -52,8 +58,10 @@ const Create = () => {
         setLoading(false);
     }
 
-    const modalCloseHandler = (event) => {
+    const modalCloseHandler = async () => {
         setSuccessMessage("");
+        const campaignAddress = await crowdfund.getCampaign(campaignId);
+        router.push(`/campaigns/${campaignAddress}`);
     }
 
     return (

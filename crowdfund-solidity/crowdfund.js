@@ -21,6 +21,10 @@ class CrowdfundWrapper {
         const accounts = await web3.eth.getAccounts();
         return await this.m_crowdfund.methods.createCampaign(mincontribution, target).send({ from: accounts[0] });
     }
+
+    async getCampaign(campaignId) {
+        return await this.m_crowdfund.methods.campaigns(campaignId).call();
+    }
 }
 
 export default CrowdfundWrapper;
