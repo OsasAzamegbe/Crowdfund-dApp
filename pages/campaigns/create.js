@@ -1,28 +1,30 @@
 import React, { useState } from "react";
 import Layout from "../../components/Layout";
-import { Button, Form, Input, Message } from "semantic-ui-react";
+import { Button, Form, Input, Message, Modal } from "semantic-ui-react";
 import CrowdfundWrapper from "../../crowdfund-solidity/crowdfund";
 
 
 const Create = () => {
-    const [minimumContribution, SetMinimumContribution] = useState("");
-    const [target, SetTarget] = useState("");
-    const [errorMessage, SetErrorMessage] = useState("");
+    const [minimumContribution, setMinimumContribution] = useState("");
+    const [target, setTarget] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const displayError = (error) => {
-        SetErrorMessage(error);
+        setErrorMessage(error);
         setTimeout(() => {
-            SetErrorMessage("");
+            setErrorMessage("");
         }, 10000);
     }
 
     // handlers
     const minimumContributionHandler = (event) => {
-        SetMinimumContribution(event.target.value);
+        setMinimumContribution(event.target.value);
     }
 
     const targetHandler = (event) => {
-        SetTarget(event.target.value);
+        setTarget(event.target.value);
     }
 
     const createCampaignHandler = async (event) => {
@@ -36,20 +38,34 @@ const Create = () => {
             return;
         }
 
+        setLoading(true);
+        setErrorMessage("");
         try {
             const crowdfund = new CrowdfundWrapper();
             await crowdfund.createCampaign(minimumContribution, target);
-            SetTarget("");
-            SetMinimumContribution("");
-            alert('Campaign was created successfully!');
+            setTarget("");
+            setMinimumContribution("");
+            setSuccessMessage('Campaign was created successfully!');
         } catch (error) {
             displayError(error.message);
         }
+        setLoading(false);
+    }
+
+    const modalCloseHandler = (event) => {
+        setSuccessMessage("");
     }
 
     return (
         <Layout>
             <Form onSubmit={createCampaignHandler} error={!!errorMessage}>
+                <Modal
+                    open={!!successMessage}
+                    header='Success!'
+                    content={successMessage}
+                    closeIcon
+                    onClose={modalCloseHandler}
+                />
                 <Message error header="Ouch! An error occured" content={errorMessage} />
                 <Form.Field>
                     <label>Minimum contribution</label>
@@ -76,7 +92,7 @@ const Create = () => {
                         onChange={targetHandler}
                     />
                 </Form.Field>
-                <Button primary>Create</Button>
+                <Button loading={loading} primary>Create</Button>
             </Form>
         </Layout>
     );
