@@ -15,7 +15,7 @@ const Index = (props) => {
             >
                 <Card.Content
                     header={address}
-                    description={<a>View Campaign</a>}
+                    description={<Link href={`/campaigns/${address}`}>View Campaign</Link>}
                     textAlign="center"
                 />
             </Card>
