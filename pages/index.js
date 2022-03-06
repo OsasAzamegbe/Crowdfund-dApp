@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import CrowdfundWrapper from '../crowdfund-solidity/crowdfund';
+import crowdfund from '../crowdfund-solidity/crowdfund';
 import { Button, Card, Icon } from 'semantic-ui-react';
 import Layout from '../components/Layout';
 import Link from 'next/link';
@@ -26,7 +26,7 @@ const Index = (props) => {
     return (
         <Layout>
             <div>
-                <h1>Current Campaigns</h1>
+                <h1> Campaigns</h1>
                 <Link href="campaigns/create">
                     <Button primary animated='fade' floated='right'>
                         <Button.Content visible>New Campaign</Button.Content>
@@ -40,7 +40,6 @@ const Index = (props) => {
 }
 
 Index.getInitialProps = async () => {
-    const crowdfund = new CrowdfundWrapper();
     const campaigns = await crowdfund.getCampaigns();
     return {campaigns};
 }

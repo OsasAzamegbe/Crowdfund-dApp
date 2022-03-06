@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Layout from "../../components/Layout";
 import { Button, Form, Input, Message, Modal } from "semantic-ui-react";
-import CrowdfundWrapper from "../../crowdfund-solidity/crowdfund";
+import crowdfund from "../../crowdfund-solidity/crowdfund";
 import { useRouter } from "next/router";
 
 
@@ -14,8 +14,6 @@ const Create = () => {
     const [campaignId, setCampaignId] = useState(0);
 
     const router = useRouter();
-
-    const crowdfund = new CrowdfundWrapper();
 
     const displayError = (error) => {
         setErrorMessage(error);

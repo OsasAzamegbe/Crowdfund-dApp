@@ -25,6 +25,13 @@ class CrowdfundWrapper {
     async getCampaign(campaignId) {
         return await this.m_crowdfund.methods.campaigns(campaignId).call();
     }
+
+    async getCampaignRequests(campaignAddress) {
+        console.log("address", campaignAddress)
+        const campaign = new web3.eth.Contract(compiled.Campaign.abi, campaignAddress);
+
+        return await campaign.methods.getCampaignRequests().call();
+    }
 }
 
-export default CrowdfundWrapper;
+export default new CrowdfundWrapper();
