@@ -27,7 +27,6 @@ class CrowdfundWrapper {
     }
 
     async getCampaignRequests(campaignAddress) {
-        console.log("address", campaignAddress)
         const campaign = new web3.eth.Contract(compiled.Campaign.abi, campaignAddress);
 
         return await campaign.methods.getCampaignRequests().call();

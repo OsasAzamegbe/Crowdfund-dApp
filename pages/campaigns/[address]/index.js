@@ -1,6 +1,8 @@
 import React from "react";
 import { useRouter } from "next/router";
 import Layout from "../../../components/Layout";
+import { Button } from "semantic-ui-react";
+import Link from "next/link";
 
 
 const AdressIndex = () => {
@@ -9,7 +11,8 @@ const AdressIndex = () => {
 
     return (
         <Layout>
-            {address}
+            <header>{address}</header>
+            <Link href={`/campaigns/${address}/requests`}><Button primary>View Requests</Button></Link>
         </Layout>
     );
 }
