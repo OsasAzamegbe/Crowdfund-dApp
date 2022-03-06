@@ -12,6 +12,7 @@ const Index = (props) => {
             return <Card
                 fluid
                 raised
+                key={address}
             >
                 <Card.Content
                     header={address}
