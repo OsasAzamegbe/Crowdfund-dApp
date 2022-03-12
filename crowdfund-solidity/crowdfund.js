@@ -5,16 +5,14 @@ import compiled from "./build/Crowdfund.json";
 class CrowdfundWrapper {
     m_crowdfund;
     m_address;
-    m_accounts;
 
     constructor() {
-        this.loadAccounts();
         this.m_address = process.env.NEXT_PUBLIC_CROWDFUND_CONTRACT_ADDRESS;
         this.m_crowdfund = new web3.eth.Contract(compiled.Crowdfund.abi, this.m_address);
     }
 
-    async loadAccounts() {
-        this.m_accounts = await web3.eth.getAccounts();
+    async getAccounts() {
+        return await web3.eth.getAccounts();
     }
 
     async getCampaigns() {
@@ -24,7 +22,8 @@ class CrowdfundWrapper {
     async createCampaign(mincontribution, target) {
         mincontribution = web3.utils.toWei(mincontribution, 'ether');
         target = web3.utils.toWei(target, 'ether');
-        return await this.m_crowdfund.methods.createCampaign(mincontribution, target).send({ from: this.m_accounts[0] });
+        const accounts = await this.getAccounts();
+        return await this.m_crowdfund.methods.createCampaign(mincontribution, target).send({ from: accounts[0] });
     }
 
     async getCampaign(campaignId) {
@@ -62,7 +61,13 @@ class CrowdfundWrapper {
     async contributeToCampaign(campaignAddress, contribution) {
         contribution = web3.utils.toWei(contribution, 'ether');
         const campaign = this.getCampaignContract(campaignAddress);
-        return await campaign.methods.contributeToCampaign().send({ from: this.m_accounts[0], value: contribution });
+        const accounts = await this.getAccounts();
+        return await campaign.methods.contributeToCampaign().send({ from: accounts[0], value: contribution });
+    }
+
+    async getManager(campaignAddress) {
+        const campaign = this.getCampaignContract(campaignAddress);
+        return await campaign.methods.manager().call();
     }
 }
 
