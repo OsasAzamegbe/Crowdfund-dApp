@@ -78,12 +78,12 @@ const AddressIndex = ({
                         {renderCampaignCards()}
                     </Grid.Column>
                     <Grid.Column width={6}>
-                        <Grid.Row stretched>
+                        <Grid.Row style={{ marginBottom: '40px' }} stretched>
                             <ContributeForm address={address} />
                         </Grid.Row>
-                        <Grid.Row verticalAlign="bottom">
+                        <Grid.Row>
                             <Link href={`/campaigns/${address}/requests`}><Button fluid primary>View Requests</Button></Link>
-                        </Grid.Row>                    
+                        </Grid.Row>
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
