@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { Button, Form, Input, Message, Modal } from "semantic-ui-react";
 import crowdfund from "../crowdfund-solidity/crowdfund";
@@ -8,6 +9,8 @@ const ContributeForm = ({ address }) => {
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const router = useRouter();
 
     const displayError = (error) => {
         setErrorMessage(error);
@@ -34,6 +37,7 @@ const ContributeForm = ({ address }) => {
             await crowdfund.contributeToCampaign(address, contribution);
             setContribution("");
             setSuccessMessage('Contribution was sent successfully!');
+            router.reload();
         } catch (error) {
             displayError(error.message);
         }
