@@ -34,6 +34,11 @@ class CrowdfundWrapper {
         return new web3.eth.Contract(compiled.Campaign.abi, campaignAddress);
     }
 
+    async getBalance(campaignAddress) {
+        const campaign = this.getCampaignContract(campaignAddress);
+        return web3.utils.fromWei(await web3.eth.getBalance(campaign.options.address), 'ether');
+    }
+
     async getCampaignDetails(campaignAddress) {
         const campaign = this.getCampaignContract(campaignAddress);
         const manager = await campaign.methods.manager().call();
@@ -68,6 +73,12 @@ class CrowdfundWrapper {
     async getManager(campaignAddress) {
         const campaign = this.getCampaignContract(campaignAddress);
         return await campaign.methods.manager().call();
+    }
+
+    async createCampaignRequest(campaignAddress, recipientAddress, description, amount) {
+        const campaign = this.getCampaignContract(campaignAddress);
+        const accounts = await this.getAccounts();
+        return await campaign.methods.createCampaignRequest(recipientAddress, description, amount).send({ from: accounts[0] });
     }
 }
 
