@@ -18,7 +18,7 @@ const CampaignRequest = ({ campaignAddress, campaignRequests, manager }) => {
 
     const renderNewRequestJSX = () => {
         return (
-            <Link href={`/campaigns/${campaignAddress}/requests`}>
+            <Link href={`/campaigns/${campaignAddress}/requests/new`}>
                 <Button fluid primary animated="fade">
                     <Button.Content visible>New Request</Button.Content>
                     <Button.Content hidden><Icon name='add circle' /></Button.Content>

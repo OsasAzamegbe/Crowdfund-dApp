@@ -63,6 +63,11 @@ class CrowdfundWrapper {
         return await campaign.methods.getCampaignRequests().call();
     }
 
+    async getCampaignRequest(campaignAddress, requestId) {
+        const campaign = this.getCampaignContract(campaignAddress);
+        return await campaign.methods.requests(requestId).call();
+    }
+
     async contributeToCampaign(campaignAddress, contribution) {
         contribution = web3.utils.toWei(contribution, 'ether');
         const campaign = this.getCampaignContract(campaignAddress);
@@ -78,6 +83,7 @@ class CrowdfundWrapper {
     async createCampaignRequest(campaignAddress, recipientAddress, description, amount) {
         const campaign = this.getCampaignContract(campaignAddress);
         const accounts = await this.getAccounts();
+        amount = web3.utils.toWei(amount, 'ether');
         return await campaign.methods.createCampaignRequest(recipientAddress, description, amount).send({ from: accounts[0] });
     }
 }

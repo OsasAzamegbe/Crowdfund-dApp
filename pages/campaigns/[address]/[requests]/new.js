@@ -1,4 +1,6 @@
+import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
+import { Form, Modal, Input, Message, Button } from "semantic-ui-react";
 import Layout from "../../../../components/Layout";
 import crowdfund from "../../../../crowdfund-solidity/crowdfund";
 
@@ -134,3 +136,5 @@ RequestForm.getInitialProps = async (props) => {
 
     return { campaignAddress, manager };
 }
+
+export default RequestForm;
