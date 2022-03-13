@@ -80,6 +80,11 @@ class CrowdfundWrapper {
         return await campaign.methods.manager().call();
     }
 
+    async getNumApprovers(campaignAddress) {
+        const campaign = this.getCampaignContract(campaignAddress);
+        return await campaign.methods.numApprovers().call();
+    }
+
     async createCampaignRequest(campaignAddress, recipientAddress, description, amount) {
         const campaign = this.getCampaignContract(campaignAddress);
         const accounts = await this.getAccounts();
